@@ -137,9 +137,9 @@ public static void main(String[] args) {
 
   // output the parsed values
   System.out.println("Name: " + ns.getString("name"));
-  System.out.println("Name: " + ns.getString("java"));
-  System.out.println("Name: " + ns.getString("memory"));
-  System.out.println("Name: " + env.weka   = ns.getString("weka"));
+  System.out.println("Jav: " + ns.getString("java"));
+  System.out.println("Memory: " + ns.getString("memory"));
+  System.out.println("Weka jar: " + ns.getString("weka"));
 }
 ```
 
