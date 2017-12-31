@@ -37,7 +37,8 @@ parser.addOption("--name")
 The parser will look for an option that starts with a flag of `--name`
 and stores the associated argument that it will find (using the key specified
 with `dest(...)`). `help(...)` specifies the help string. 
-`required(true)` specifies that the user *has* to supply the argument.
+`required(true)` specifies that the user *has* to supply the argument (by default, 
+options are optional).
 
 Other settings:
 
@@ -59,7 +60,7 @@ a help screen generated from the defined options.
 import com.github.fracpete.simpleargparse4j.ArgumentParserException;
 import com.github.fracpete.simpleargparse4j.Namespace;
 ...
-Namesspace ns;
+Namespace ns;
 try {
   ns = parser.parseArgs(args);
 }
@@ -125,7 +126,7 @@ public static void main(String[] args) {
     .setDefault("");
   
   // parse the options
-  Namesspace ns;
+  Namespace ns;
   try {
     ns = parser.parseArgs(args, true);
   }
