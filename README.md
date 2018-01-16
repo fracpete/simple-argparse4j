@@ -15,8 +15,12 @@ The parser supports the following data types:
 
 * string
 * boolean
+* byte
+* short
 * int
+* long
 * float
+* double
 
 Apart from *boolean* all data types require an argument. 
 
@@ -44,7 +48,11 @@ Other settings:
 
 * `argument(boolean)` -- specifies whether the option is a flag (`false`) or 
   requires an argument (`true`)
-* `setDefault(String)` -- sets the default value (if not a required option)
+* `multiple(boolean)` -- specifies whether the option can occur multiple times
+* `setDefault(...)` -- sets the default value (if not a required option);
+  in conjunction with `multiple(true)`, you have to set a `java.util.List` object
+* `type(Type)` -- sets the type to enforce when parsing the options rather than 
+  when retrieving them from the `Namespace` object, e.g., double
 
 
 ## Parsing options
@@ -66,7 +74,7 @@ try {
 }
 catch (ArgumentParserException e) {
   parser.handleError(e);
-  return false;
+  return !parser.getHelpRequested();  // help request is valid operation
 }
 ```
 
@@ -86,8 +94,13 @@ Once the options have been parsed, you can retrieve (typed) from the
   Without specifying an explicit default value, `false` gets returned if the
   flag is present, otherwise `true`. You can invert this by simply using 
   `setDefault(true)` when defining the option.
+* `getByte(String)` -- returns the byte associated with the provided key
+* `getShort(String)` -- returns the short associated with the provided key
 * `getInt(String)` -- returns the integer associated with the provided key
+* `getLong(String)` -- returns the long associated with the provided key
 * `getFloat(String)` -- returns the float associated with the provided key
+* `getDouble(String)` -- returns the double associated with the provided key
+* `getList(String)` -- returns the list associated with the provided key
 
 
 ## Example
@@ -124,6 +137,10 @@ public static void main(String[] args) {
     .dest("wekafiles")
     .help("the full path to the 'wekafiles' directory to initialize the environment with")
     .setDefault("");
+  parser.addOption("--envvar")
+    .dest("envvar")
+    .help("optional environment variables to set (key=value)")
+    .multiple(true);
   
   // parse the options
   Namespace ns;
@@ -140,6 +157,7 @@ public static void main(String[] args) {
   System.out.println("Jav: " + ns.getString("java"));
   System.out.println("Memory: " + ns.getString("memory"));
   System.out.println("Weka jar: " + ns.getString("weka"));
+  System.out.println("Env. vars: " + ns.getList("envvar"));
 }
 ```
 
@@ -151,6 +169,6 @@ Add the following dependency to your `pom.xml`:
     <dependency>
       <groupId>com.github.fracpete</groupId>
       <artifactId>simple-argparse4j</artifactId>
-      <version>0.0.2</version>
+      <version>0.0.3</version>
     </dependency>
 ```

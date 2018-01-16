@@ -15,7 +15,7 @@
 
 /*
  * Option.java
- * Copyright (C) 2017 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
@@ -30,6 +30,18 @@ import java.io.Serializable;
 public class Option
   implements Serializable, Comparable<Option> {
 
+  /** the types. */
+  public enum Type {
+    STRING,
+    BOOLEAN,
+    BYTE,
+    SHORT,
+    INTEGER,
+    LONG,
+    FLOAT,
+    DOUBLE,
+  }
+
   /** the destination (key in namespace). */
   protected String m_Dest;
 
@@ -40,7 +52,7 @@ public class Option
   protected boolean m_HasArgument;
 
   /** the default value. */
-  protected String m_DefaultValue;
+  protected Object m_DefaultValue;
 
   /** the help string. */
   protected String m_Help;
@@ -48,13 +60,19 @@ public class Option
   /** whether the option is required or optional. */
   protected boolean m_Required;
 
+  /** whether the option can be specified multiple times. */
+  protected boolean m_Multiple;
+
+  /** the type. */
+  protected Type m_Type;
+
   /**
    * Initializes the option.
    *
    * @param flag	the flag
    */
   public Option(String flag) {
-    this(flag.replace("-", ""), flag, true, "", flag.replace("-", ""), false);
+    this(flag.replace("-", ""), flag, true, null, flag.replace("-", ""), false, false, Type.STRING);
   }
 
   /**
@@ -66,14 +84,18 @@ public class Option
    * @param defValue	the default value
    * @param help	short help string
    * @param required	true if required, otherwise optional
+   * @param multiple	true if can be occur multiple times
+   * @param type	the type of the argument
    */
-  public Option(String dest, String flag, boolean hasArg, String defValue, String help, boolean required) {
+  public Option(String dest, String flag, boolean hasArg, String defValue, String help, boolean required, boolean multiple, Type type) {
     m_Dest         = dest;
     m_Flag         = flag;
     m_HasArgument  = hasArg;
     m_DefaultValue = defValue;
     m_Help         = help;
     m_Required     = required;
+    m_Multiple     = multiple;
+    m_Type         = type;
   }
 
   /**
@@ -95,6 +117,8 @@ public class Option
    */
   public Option argument(boolean value) {
     m_HasArgument = value;
+    if (!m_HasArgument)
+      type(Type.BOOLEAN);
     return this;
   }
 
@@ -105,6 +129,83 @@ public class Option
    * @return		the option
    */
   public Option setDefault(String value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(boolean value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(byte value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(short value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(int value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(long value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(float value) {
+    m_DefaultValue = value;
+    return this;
+  }
+
+  /**
+   * Sets the default value.
+   *
+   * @param value	the default value
+   * @return		the option
+   */
+  public Option setDefault(double value) {
     m_DefaultValue = value;
     return this;
   }
@@ -128,6 +229,30 @@ public class Option
    */
   public Option required(boolean value) {
     m_Required = value;
+    return this;
+  }
+
+  /**
+   * Sets whether the option can be specified multiple times.
+   *
+   * @param value	true if multiple occurrences
+   * @return		the option
+   */
+  public Option multiple(boolean value) {
+    m_Multiple = value;
+    return this;
+  }
+
+  /**
+   * Sets how to interpret the argument.
+   *
+   * @param value	the type
+   * @return		the option
+   */
+  public Option type(Type value) {
+    m_Type = value;
+    if (m_Type == Type.BOOLEAN)
+      m_HasArgument = false;
     return this;
   }
 
@@ -163,8 +288,9 @@ public class Option
    *
    * @return		the default value
    */
-  public String getDefault() {
-    return m_DefaultValue;
+  @SuppressWarnings("unchecked")
+  public <E> E getDefault() {
+    return (E) m_DefaultValue;
   }
 
   /**
@@ -183,6 +309,97 @@ public class Option
    */
   public boolean isRequired() {
     return m_Required;
+  }
+
+  /**
+   * Returns whether the option can occur multiple times.
+   *
+   * @return		true if can occur multiple times
+   */
+  public boolean isMultiple() {
+    return m_Multiple;
+  }
+
+  /**
+   * Returns the type of the option.
+   *
+   * @return		the type
+   */
+  public Type getType() {
+    return m_Type;
+  }
+
+  /**
+   * Uses the type information to test the value.
+   *
+   * @param value	the string value to test
+   * @return		true if valid according to type
+   * @see		#getType()
+   */
+  public boolean isValid(String value) {
+    try {
+      switch (getType()) {
+	case BOOLEAN:
+	  Boolean.parseBoolean(value);
+	  break;
+	case BYTE:
+	  Byte.parseByte(value);
+	  break;
+	case SHORT:
+	  Short.parseShort(value);
+	  break;
+	case INTEGER:
+	  Integer.parseInt(value);
+	  break;
+	case LONG:
+	  Long.parseLong(value);
+	  break;
+	case FLOAT:
+	  Float.parseFloat(value);
+	  break;
+	case DOUBLE:
+	  Double.parseDouble(value);
+	  break;
+	case STRING:
+	  return true;
+	default:
+	  throw new IllegalStateException("Unhandled type (for option '" + getDest() + "'): " + getType());
+      }
+      return true;
+    }
+    catch (Exception e) {
+      return false;
+    }
+  }
+
+  /**
+   * Uses the type information to parse the value.
+   *
+   * @param value	the string value to test
+   * @return		true if valid according to type
+   * @see		#getType()
+   */
+  public Object parse(String value) {
+    switch (getType()) {
+      case BOOLEAN:
+	return Boolean.parseBoolean(value);
+      case BYTE:
+	return Byte.parseByte(value);
+      case SHORT:
+	return Short.parseShort(value);
+      case INTEGER:
+	return Integer.parseInt(value);
+      case LONG:
+	return Long.parseLong(value);
+      case FLOAT:
+	return Float.parseFloat(value);
+      case DOUBLE:
+	return Double.parseDouble(value);
+      case STRING:
+	return value;
+      default:
+	throw new IllegalStateException("Unhandled type (for option '" + getDest() + "'): " + getType());
+    }
   }
 
   /**
@@ -228,6 +445,7 @@ public class Option
       + "hasArg=" + m_HasArgument + ", "
       + "defValue=" + m_DefaultValue + ", "
       + "help=" + m_Help + ", "
-      + "required=" + m_Required;
+      + "required=" + m_Required + ", "
+      + "multiple=" + m_Multiple;
   }
 }

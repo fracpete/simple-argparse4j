@@ -117,11 +117,10 @@ public class ArgumentParser
     Option		option;
 
     // initialize parsing
-    result   = new Namespace();
+    result   = new Namespace(m_Options);
     mapped   = new HashMap<>();
     required = new HashSet<>();
     for (Option opt: m_Options) {
-      result.setDefault(opt.getDest(), opt.getDefault());
       mapped.put(opt.getFlag(), opt);
       if (opt.isRequired())
         required.add(opt);
@@ -141,7 +140,12 @@ public class ArgumentParser
         if (option.hasArgument()) {
 	  if (i == args.length - 1)
 	    throw new com.github.fracpete.simpleargparse4j.MissingArgumentException("No argument supplied: " + option.getFlag());
-	  result.setValue(option.getDest(), args[i+1]);
+	  if (!option.isValid(args[i+1]))
+	    throw new InvalidArgumentException(option.getFlag(), option.getType(), args[i+1]);
+	  if (option.isMultiple())
+	    result.addValue(option.getDest(), option.parse(args[i+1]));
+	  else
+	    result.setValue(option.getDest(), option.parse(args[i+1]));
           if (remove) {
 	    args[i]   = "";
 	    args[i+1] = "";
@@ -149,7 +153,10 @@ public class ArgumentParser
 	  }
 	}
 	else {
-          result.flipValue(option.getDest());
+          if (option.isMultiple())
+            result.addValue(option.getDest(), result.flipDefault(option.getDest()));
+          else
+	    result.setValue(option.getDest(), result.flipDefault(option.getDest()));
           if (remove)
             args[i] = "";
 	}
@@ -200,6 +207,8 @@ public class ArgumentParser
       result.append(opt.getFlag());
       if (opt.hasArgument())
         result.append(" ").append(opt.getDest().toUpperCase());
+      if (opt.isMultiple())
+        result.append("...");
       if (!opt.isRequired())
         result.append("]");
     }

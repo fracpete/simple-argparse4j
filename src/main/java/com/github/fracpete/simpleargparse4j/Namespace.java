@@ -15,13 +15,15 @@
 
 /*
  * Namespace.java
- * Copyright (C) 2017 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,13 +35,91 @@ public class Namespace
   implements Serializable {
 
   /** for storing the options (name - value). */
-  protected Map<String,String> m_Stored;
+  protected Map<String,Object> m_Values;
 
   /**
    * Initializes the namespace.
+   *
+   * @param options	the options to initialize with
    */
-  public Namespace() {
-    m_Stored = new HashMap<>();
+  public Namespace(List<Option> options) {
+    m_Values = new HashMap<>();
+    init(options);
+  }
+
+  /**
+   * Initializes the namespace with the given options.
+   *
+   * @param options	the options to initialize with
+   */
+  protected void init(List<Option> options) {
+    for (Option option: options) {
+      if (option.getDefault() != null)
+	m_Values.put(option.getDest(), option.getDefault());
+
+      if (!m_Values.containsKey(option.getDest())) {
+	if (option.isMultiple()) {
+	  switch (option.getType()) {
+	    case BOOLEAN:
+	      setDefault(option.getDest(), new ArrayList<Boolean>());
+	      break;
+	    case BYTE:
+	      setDefault(option.getDest(), new ArrayList<Byte>());
+	      break;
+	    case SHORT:
+	      setDefault(option.getDest(), new ArrayList<Short>());
+	      break;
+	    case INTEGER:
+	      setDefault(option.getDest(), new ArrayList<Integer>());
+	      break;
+	    case LONG:
+	      setDefault(option.getDest(), new ArrayList<Long>());
+	      break;
+	    case FLOAT:
+	      setDefault(option.getDest(), new ArrayList<Float>());
+	      break;
+	    case DOUBLE:
+	      setDefault(option.getDest(), new ArrayList<Double>());
+	      break;
+	    case STRING:
+	      setDefault(option.getDest(), new ArrayList<String>());
+	      break;
+	    default:
+	      throw new IllegalStateException("Unhandled list type (for option '" + option.getDest() + "'): " + option.getType());
+	  }
+	}
+	else {
+	  switch (option.getType()) {
+	    case BOOLEAN:
+	      setDefault(option.getDest(), false);
+	      break;
+	    case BYTE:
+	      setDefault(option.getDest(), 0);
+	      break;
+	    case SHORT:
+	      setDefault(option.getDest(), 0);
+	      break;
+	    case INTEGER:
+	      setDefault(option.getDest(), 0);
+	      break;
+	    case LONG:
+	      setDefault(option.getDest(), 0L);
+	      break;
+	    case FLOAT:
+	      setDefault(option.getDest(), 0.0f);
+	      break;
+	    case DOUBLE:
+	      setDefault(option.getDest(), 0.0);
+	      break;
+	    case STRING:
+	      setDefault(option.getDest(), "");
+	      break;
+	    default:
+	      throw new IllegalStateException("Unhandled list type (for option '" + option.getDest() + "'): " + option.getType());
+	  }
+	}
+      }
+    }
   }
 
   /**
@@ -49,7 +129,7 @@ public class Namespace
    * @param value	the default value
    */
   public void setDefault(String name, String value) {
-    m_Stored.put(name, value);
+    m_Values.put(name, value);
   }
 
   /**
@@ -59,7 +139,27 @@ public class Namespace
    * @param value	the default value
    */
   public void setDefault(String name, boolean value) {
-    m_Stored.put(name, "" + value);
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public void setDefault(String name, byte value) {
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public void setDefault(String name, short value) {
+    m_Values.put(name, value);
   }
 
   /**
@@ -69,7 +169,17 @@ public class Namespace
    * @param value	the default value
    */
   public void setDefault(String name, int value) {
-    m_Stored.put(name, "" + value);
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public void setDefault(String name, long value) {
+    m_Values.put(name, value);
   }
 
   /**
@@ -79,7 +189,27 @@ public class Namespace
    * @param value	the default value
    */
   public void setDefault(String name, float value) {
-    m_Stored.put(name, "" + value);
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public void setDefault(String name, double value) {
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public <E> void setDefault(String name, List<E> value) {
+    m_Values.put(name, value);
   }
 
   /**
@@ -88,20 +218,28 @@ public class Namespace
    * @param name	the name
    * @param value	the "parsed" value
    */
-  public void setValue(String name, String value) {
-    m_Stored.put(name, value);
+  public void setValue(String name, Object value) {
+    m_Values.put(name, value);
   }
 
   /**
-   * Flips the "parsed" boolean value for the named option.
+   * Sets the "parsed" value for the named option.
    *
    * @param name	the name
+   * @param value	the "parsed" value
    */
-  public void flipValue(String name) {
-    if (m_Stored.get(name).equals("true"))
-      m_Stored.put(name, "" + false);
-    else
-      m_Stored.put(name, "" + true);
+  public void addValue(String name, Object value) {
+    getList(name).add(value);
+  }
+
+  /**
+   * Returns the flipped default value.
+   *
+   * @param name	the name
+   * @return		the flipped value
+   */
+  public boolean flipDefault(String name) {
+    return !(m_Values.get(name).equals(true));
   }
 
   /**
@@ -111,7 +249,7 @@ public class Namespace
    * @return		the associated value
    */
   public String getString(String name) {
-    return m_Stored.get(name);
+    return (String) m_Values.get(name);
   }
 
   /**
@@ -121,7 +259,27 @@ public class Namespace
    * @return		the associated value
    */
   public boolean getBoolean(String name) {
-    return Boolean.parseBoolean(m_Stored.get(name));
+    return Boolean.parseBoolean("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the byte value associated with an option name.
+   *
+   * @param name	the name
+   * @return		the associated value
+   */
+  public byte getByte(String name) {
+    return Byte.parseByte("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the short value associated with an option name.
+   *
+   * @param name	the name
+   * @return		the associated value
+   */
+  public short getShort(String name) {
+    return Short.parseShort("" + m_Values.get(name));
   }
 
   /**
@@ -131,7 +289,17 @@ public class Namespace
    * @return		the associated value
    */
   public int getInt(String name) {
-    return Integer.parseInt(m_Stored.get(name));
+    return Integer.parseInt("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the long value associated with an option name.
+   *
+   * @param name	the name
+   * @return		the associated value
+   */
+  public long getLong(String name) {
+    return Long.parseLong("" + m_Values.get(name));
   }
 
   /**
@@ -141,15 +309,37 @@ public class Namespace
    * @return		the associated value
    */
   public float getFloat(String name) {
-    return Float.parseFloat(m_Stored.get(name));
+    return Float.parseFloat("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the double value associated with an option name.
+   *
+   * @param name	the name
+   * @return		the associated value
+   */
+  public double getDouble(String name) {
+    return Double.parseDouble("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the list of values associated with an option name.
+   *
+   * @param name 	the name
+   * @param <E>		the type of list
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public <E> List<E> getList(String name) {
+    return (List<E>) m_Values.get(name);
   }
 
   /**
    * Returns the stored options in a string representation.
    *
-   * @return		the string represetation
+   * @return		the string representation
    */
   public String toString() {
-    return m_Stored.toString();
+    return m_Values.toString();
   }
 }
