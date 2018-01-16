@@ -15,7 +15,7 @@
 
 /*
  * ArgumentParser.java
- * Copyright (C) 2017 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
@@ -44,6 +44,9 @@ public class ArgumentParser
 
   /** the managed options. */
   protected List<Option> m_Options;
+
+  /** whether help got requested. */
+  protected boolean m_HelpRequested;
 
   /**
    * Initializes the parser.
@@ -127,8 +130,10 @@ public class ArgumentParser
     // parse
     for (i = 0; i < args.length; i++) {
       // help?
-      if (args[i].equals("--help"))
+      if (args[i].equals("--help")) {
+        m_HelpRequested = true;
         throw new com.github.fracpete.simpleargparse4j.HelpRequestedException();
+      }
 
       // defined option?
       if (mapped.containsKey(args[i])) {
@@ -169,6 +174,7 @@ public class ArgumentParser
     StringBuilder	result;
     int			width;
     int			optwidth;
+    String[]		lines;
 
     result = new StringBuilder();
     if (requested)
@@ -207,7 +213,9 @@ public class ArgumentParser
       if (!opt.hasArgument())
         result.append(" ").append(opt.getDest().toUpperCase());
       result.append("\n");
-      result.append("\t").append(opt.getHelp());
+      lines = opt.getHelp().split("\n");
+      for (String line: lines)
+	result.append("\t").append(line);
       result.append("\n");
     }
 
@@ -215,9 +223,19 @@ public class ArgumentParser
   }
 
   /**
+   * Returns whether help got requested.
+   *
+   * @return		true if help got requested
+   */
+  public boolean getHelpRequested() {
+    return m_HelpRequested;
+  }
+
+  /**
    * Handles the parse exception.
    *
    * @param e		the exception
+   * @see		#getHelpRequested()
    */
   public void handleError(com.github.fracpete.simpleargparse4j.ArgumentParserException e) {
     if (e instanceof com.github.fracpete.simpleargparse4j.HelpRequestedException) {
