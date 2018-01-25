@@ -243,7 +243,7 @@ public class ArgumentParser
 	result.append("\n");
 	lines = opt.getHelp().split("\n");
 	for (String line : lines)
-	  result.append("\t").append(line);
+	  result.append("\t").append(line).append("\n");
 	result.append("\n");
       }
     }
