@@ -178,54 +178,74 @@ public class ArgumentParser
    * @return		the help screen
    */
   public String generateHelpScreen(boolean requested) {
+    return generateHelpScreen(requested, true, true, true);
+  }
+
+  /**
+   * Generates and returns the help screen.
+   *
+   * @param requested 	true if actually requested
+   * @param desc	true if to output description
+   * @param usage	true if to output short usage section
+   * @param options	true if to output detailed options
+   * @return		the help screen
+   */
+  public String generateHelpScreen(boolean requested, boolean desc, boolean usage, boolean options) {
     StringBuilder	result;
     int			width;
     int			optwidth;
     String[]		lines;
 
     result = new StringBuilder();
-    if (requested)
-      result.append("Help requested\n\n");
-
-    result.append(m_Description);
-    result.append("\n\n");
-
-    // short usage
-    result.append("Usage: [--help]");
-    for (Option opt: m_Options) {
-      width = result.length() % SCREEN_WIDTH;
-      optwidth = opt.getFlag().length();
-      if (!opt.isRequired())
-        optwidth += 2;  // surrounding brackets
-      if (opt.hasArgument())
-        optwidth += 1 + opt.getDest().length();
-      if (width + optwidth + 1 > SCREEN_WIDTH)
-        result.append("\n").append("      ");
-      result.append(" ");
-      if (!opt.isRequired())
-        result.append("[");
-      result.append(opt.getFlag());
-      if (opt.hasArgument())
-        result.append(" ").append(opt.getDest().toUpperCase());
-      if (opt.isMultiple())
-        result.append("...");
-      if (!opt.isRequired())
-        result.append("]");
+    if (requested) {
+      result.append("Help requested");
+      result.append("\n\n");
     }
 
-    result.append("\n\n");
+    if (desc) {
+      result.append(m_Description);
+      result.append("\n\n");
+    }
+
+    // short usage
+    if (usage) {
+      result.append("Usage: [--help]");
+      for (Option opt : m_Options) {
+	width = result.length() % SCREEN_WIDTH;
+	optwidth = opt.getFlag().length();
+	if (!opt.isRequired())
+	  optwidth += 2;  // surrounding brackets
+	if (opt.hasArgument())
+	  optwidth += 1 + opt.getDest().length();
+	if (width + optwidth + 1 > SCREEN_WIDTH)
+	  result.append("\n").append("      ");
+	result.append(" ");
+	if (!opt.isRequired())
+	  result.append("[");
+	result.append(opt.getFlag());
+	if (opt.hasArgument())
+	  result.append(" ").append(opt.getDest().toUpperCase());
+	if (opt.isMultiple())
+	  result.append("...");
+	if (!opt.isRequired())
+	  result.append("]");
+      }
+      result.append("\n\n");
+    }
 
     // help screen for options
-    result.append("Options:\n");
-    for (Option opt: m_Options) {
-      result.append(opt.getFlag());
-      if (!opt.hasArgument())
-        result.append(" ").append(opt.getDest().toUpperCase());
-      result.append("\n");
-      lines = opt.getHelp().split("\n");
-      for (String line: lines)
-	result.append("\t").append(line);
-      result.append("\n");
+    if (options) {
+      result.append("Options:\n");
+      for (Option opt : m_Options) {
+	result.append(opt.getFlag());
+	if (!opt.hasArgument())
+	  result.append(" ").append(opt.getDest().toUpperCase());
+	result.append("\n");
+	lines = opt.getHelp().split("\n");
+	for (String line : lines)
+	  result.append("\t").append(line);
+	result.append("\n");
+      }
     }
 
     return result.toString();
