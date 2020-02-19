@@ -15,7 +15,7 @@
 
 /*
  * ArgumentParserTest.java
- * Copyright (C) 2018 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2018-2020 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
@@ -249,6 +249,29 @@ public class ArgumentParserTest
       assertEquals("opt[0]", true, ns.getList("opt").get(0));
       assertEquals("opt[1]", true, ns.getList("opt").get(1));
       assertEquals("opt[2]", true, ns.getList("opt").get(2));
+    }
+    catch (Exception e) {
+      fail("Failed to parse!\n" + e);
+    }
+  }
+
+  /**
+   * Tests supplying short/long flags.
+   */
+  public void testShortLong() {
+    ArgumentParser parser = new ArgumentParser("test");
+    parser.addOption("-o", "--opt").dest("opt");
+    try {
+      Namespace ns = parser.parseArgs(new String[]{
+        "--opt",
+        "yo",
+      });
+      assertEquals("opt", "yo", ns.getString("opt"));
+      ns = parser.parseArgs(new String[]{
+        "-o",
+        "yo",
+      });
+      assertEquals("opt", "yo", ns.getString("opt"));
     }
     catch (Exception e) {
       fail("Failed to parse!\n" + e);

@@ -15,7 +15,7 @@
 
 /*
  * Option.java
- * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2020 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
@@ -48,6 +48,9 @@ public class Option
   /** the commandline flag. */
   protected String m_Flag;
 
+  /** the long commandline flag. */
+  protected String m_SecondFlag;
+
   /** whether option has an argument. */
   protected boolean m_HasArgument;
 
@@ -69,7 +72,7 @@ public class Option
   /**
    * Initializes the option.
    *
-   * @param flag	the flag
+   * @param flag	the flag (eg "-X" or "--XXX")
    */
   public Option(String flag) {
     this(flag.replace("-", ""), flag, true, null, flag.replace("-", ""), false, false, Type.STRING);
@@ -78,8 +81,18 @@ public class Option
   /**
    * Initializes the option.
    *
+   * @param flag	the flag (eg "-X" or "--XXX")
+   * @param secondFlag 	the second flag (eg a long version "--XXX")
+   */
+  public Option(String flag, String secondFlag) {
+    this((secondFlag != null ? secondFlag.replace("-", "") : flag.replace("-", "")), flag, secondFlag, true, null, flag.replace("-", ""), false, false, Type.STRING);
+  }
+
+  /**
+   * Initializes the option.
+   *
    * @param dest	the destination (ie key in namespace)
-   * @param flag	the flag (eg "--blah")
+   * @param flag	the flag (eg "-X" or "--XXX")
    * @param hasArg	true if the option has an argument
    * @param defValue	the default value
    * @param help	short help string
@@ -88,8 +101,26 @@ public class Option
    * @param type	the type of the argument
    */
   public Option(String dest, String flag, boolean hasArg, String defValue, String help, boolean required, boolean multiple, Type type) {
+    this(dest, flag, null, hasArg, defValue, help, required, multiple, type);
+  }
+
+  /**
+   * Initializes the option.
+   *
+   * @param dest	the destination (ie key in namespace)
+   * @param flag	the flag (eg "-X" or "--XXX")
+   * @param secondFlag 	the second flag (eg a long version "--XXX")
+   * @param hasArg	true if the option has an argument
+   * @param defValue	the default value
+   * @param help	short help string
+   * @param required	true if required, otherwise optional
+   * @param multiple	true if can be occur multiple times
+   * @param type	the type of the argument
+   */
+  public Option(String dest, String flag, String secondFlag, boolean hasArg, String defValue, String help, boolean required, boolean multiple, Type type) {
     m_Dest         = dest;
     m_Flag         = flag;
+    m_SecondFlag = secondFlag;
     m_HasArgument  = hasArg;
     m_DefaultValue = defValue;
     m_Help         = help;
@@ -266,12 +297,30 @@ public class Option
   }
 
   /**
-   * Returns the commandline flag.
+   * Returns the commandline flag ("-X").
    *
    * @return		the flag
    */
   public String getFlag() {
     return m_Flag;
+  }
+
+  /**
+   * Returns whether a second flag is present.
+   *
+   * @return		true if present
+   */
+  public boolean hasSecondFlag() {
+    return (m_SecondFlag != null);
+  }
+
+  /**
+   * Returns the second commandline flag ("--XXX").
+   *
+   * @return		the flag
+   */
+  public String getSecondFlag() {
+    return m_SecondFlag;
   }
 
   /**
@@ -442,6 +491,7 @@ public class Option
   public String toString() {
     return "name=" + m_Dest + ", "
       + "flag=" + m_Flag + ", "
+      + "longFlag=" + (m_SecondFlag == null ? "-no-" : m_SecondFlag) + ", "
       + "hasArg=" + m_HasArgument + ", "
       + "defValue=" + m_DefaultValue + ", "
       + "help=" + m_Help + ", "

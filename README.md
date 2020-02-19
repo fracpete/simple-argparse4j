@@ -42,7 +42,18 @@ The parser will look for an option that starts with a flag of `--name`
 and stores the associated argument that it will find (using the key specified
 with `dest(...)`). `help(...)` specifies the help string. 
 `required(true)` specifies that the user *has* to supply the argument (by default, 
-options are optional).
+options are optional). 
+
+It is also possible to supply two flags, e.g., a short form and a long version:
+```java
+import com.github.fracpete.simpleargparse4j.ArgumentParser;
+...
+ArgumentParser parser = new ArgumentParser(getName());
+parser.addOption("-n", "--name")
+  .dest("name")
+  .help("the name of the environment")
+  .required(true);
+``` 
 
 Other settings:
 

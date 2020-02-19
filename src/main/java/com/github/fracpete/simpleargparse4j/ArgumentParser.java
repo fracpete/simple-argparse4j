@@ -15,7 +15,7 @@
 
 /*
  * ArgumentParser.java
- * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2020 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
@@ -68,13 +68,29 @@ public class ArgumentParser
   /**
    * Adds the option.
    *
-   * @param flag	the flag to use (eg "--blah")
+   * @param flag	the flag (eg "-X" or "--XXX")
    * @return		the option
    */
   public Option addOption(String flag) {
     Option	result;
 
     result = new Option(flag);
+    m_Options.add(result);
+
+    return result;
+  }
+
+  /**
+   * Adds the option.
+   *
+   * @param flag	the flag (eg "-X" or "--XXX")
+   * @param secondFlag 	the second flag (eg a long version "--XXX")
+   * @return		the option
+   */
+  public Option addOption(String flag, String secondFlag) {
+    Option	result;
+
+    result = new Option(flag, secondFlag);
     m_Options.add(result);
 
     return result;
@@ -122,6 +138,8 @@ public class ArgumentParser
     required = new HashSet<>();
     for (Option opt: m_Options) {
       mapped.put(opt.getFlag(), opt);
+      if (opt.hasSecondFlag())
+        mapped.put(opt.getSecondFlag(), opt);
       if (opt.isRequired())
         required.add(opt);
     }
@@ -213,6 +231,8 @@ public class ArgumentParser
       for (Option opt : m_Options) {
 	width = result.length() % SCREEN_WIDTH;
 	optwidth = opt.getFlag().length();
+	if (opt.hasSecondFlag())
+	  optwidth += 1 + opt.getSecondFlag().length();
 	if (!opt.isRequired())
 	  optwidth += 2;  // surrounding brackets
 	if (opt.hasArgument())
@@ -238,7 +258,9 @@ public class ArgumentParser
       result.append("Options:\n");
       for (Option opt : m_Options) {
 	result.append(opt.getFlag());
-	if (!opt.hasArgument())
+	if (opt.hasSecondFlag())
+	  result.append("/").append(opt.getSecondFlag());
+	if (opt.hasArgument())
 	  result.append(" ").append(opt.getDest().toUpperCase());
 	result.append("\n");
 	lines = opt.getHelp().split("\n");
