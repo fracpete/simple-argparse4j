@@ -15,11 +15,12 @@
 
 /*
  * Namespace.java
- * Copyright (C) 2017-2018 University of Waikato, Hamilton, NZ
+ * Copyright (C) 2017-2020 University of Waikato, Hamilton, NZ
  */
 
 package com.github.fracpete.simpleargparse4j;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,11 +85,19 @@ public class Namespace
 	    case STRING:
 	      setDefault(option.getDest(), new ArrayList<String>());
 	      break;
+	    case FILE:
+	    case DIRECTORY:
+	    case EXISTING_FILE:
+	    case EXISTING_DIR:
+	    case NONEXISTING_FILE:
+	    case NONEXISTING_DIR:
+	      setDefault(option.getDest(), new ArrayList<File>());
+	      break;
 	    default:
 	      throw new IllegalStateException("Unhandled list type (for option '" + option.getDest() + "'): " + option.getType());
 	  }
 	}
-	else {
+	else if (option.hasDefaultValue()) {
 	  switch (option.getType()) {
 	    case BOOLEAN:
 	      setDefault(option.getDest(), false);
@@ -113,6 +122,14 @@ public class Namespace
 	      break;
 	    case STRING:
 	      setDefault(option.getDest(), "");
+	      break;
+	    case FILE:
+	    case DIRECTORY:
+	    case EXISTING_FILE:
+	    case EXISTING_DIR:
+	    case NONEXISTING_FILE:
+	    case NONEXISTING_DIR:
+	      setDefault(option.getDest(), new File("."));
 	      break;
 	    default:
 	      throw new IllegalStateException("Unhandled list type (for option '" + option.getDest() + "'): " + option.getType());
@@ -199,6 +216,16 @@ public class Namespace
    * @param value	the default value
    */
   public void setDefault(String name, double value) {
+    m_Values.put(name, value);
+  }
+
+  /**
+   * Sets the default value for the named option.
+   *
+   * @param name	the name
+   * @param value	the default value
+   */
+  public void setDefault(String name, File value) {
     m_Values.put(name, value);
   }
 
@@ -320,6 +347,18 @@ public class Namespace
    */
   public double getDouble(String name) {
     return Double.parseDouble("" + m_Values.get(name));
+  }
+
+  /**
+   * Returns the file associated with an option name.
+   *
+   * @param name	the name
+   * @return		the associated value, null if not available
+   */
+  public File getFile(String name) {
+    if (m_Values.get(name) == null)
+      return null;
+    return new File("" + m_Values.get(name));
   }
 
   /**

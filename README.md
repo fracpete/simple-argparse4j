@@ -21,6 +21,7 @@ The parser supports the following data types:
 * long
 * float
 * double
+* file (any file/dir, existing file/dir, non-existing file/dir)
 
 Apart from *boolean* all data types require an argument. 
 
@@ -111,6 +112,7 @@ Once the options have been parsed, you can retrieve (typed) from the
 * `getLong(String)` -- returns the long associated with the provided key
 * `getFloat(String)` -- returns the float associated with the provided key
 * `getDouble(String)` -- returns the double associated with the provided key
+* `getFile(String)` -- returns the double associated with the provided key
 * `getList(String)` -- returns the list associated with the provided key
 
 

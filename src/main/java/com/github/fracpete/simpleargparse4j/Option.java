@@ -20,7 +20,9 @@
 
 package com.github.fracpete.simpleargparse4j;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Defines an option.
@@ -40,6 +42,12 @@ public class Option
     LONG,
     FLOAT,
     DOUBLE,
+    FILE,
+    DIRECTORY,
+    EXISTING_FILE,
+    EXISTING_DIR,
+    NONEXISTING_FILE,
+    NONEXISTING_DIR
   }
 
   /** the destination (key in namespace). */
@@ -56,6 +64,9 @@ public class Option
 
   /** the default value. */
   protected Object m_DefaultValue;
+
+  /** whether it has a default value. */
+  protected boolean m_HasDefaultValue;
 
   /** the help string. */
   protected String m_Help;
@@ -118,15 +129,16 @@ public class Option
    * @param type	the type of the argument
    */
   public Option(String dest, String flag, String secondFlag, boolean hasArg, String defValue, String help, boolean required, boolean multiple, Type type) {
-    m_Dest         = dest;
-    m_Flag         = flag;
-    m_SecondFlag = secondFlag;
-    m_HasArgument  = hasArg;
-    m_DefaultValue = defValue;
-    m_Help         = help;
-    m_Required     = required;
-    m_Multiple     = multiple;
-    m_Type         = type;
+    m_Dest            = dest;
+    m_Flag            = flag;
+    m_SecondFlag      = secondFlag;
+    m_HasArgument     = hasArg;
+    m_DefaultValue    = defValue;
+    m_HasDefaultValue = true;
+    m_Help            = help;
+    m_Required        = required;
+    m_Multiple        = multiple;
+    m_Type            = type;
   }
 
   /**
@@ -151,6 +163,29 @@ public class Option
     if (!m_HasArgument)
       type(Type.BOOLEAN);
     return this;
+  }
+
+  /**
+   * Removes the default value.
+   *
+   * @return		the option
+   */
+  public Option noDefault() {
+    if (isMultiple())
+      ((List) getDefault()).clear();
+    else
+      m_DefaultValue = null;
+    m_HasDefaultValue = false;
+    return this;
+  }
+
+  /**
+   * Returns whether the option has a default value.
+   *
+   * @return		true if available
+   */
+  public boolean hasDefaultValue() {
+    return m_HasDefaultValue;
   }
 
   /**
@@ -253,13 +288,16 @@ public class Option
   }
 
   /**
-   * Sets whether the option is required.
+   * Sets whether the option is required. Automatically removes any associated
+   * default value.
    *
    * @param value	true if required, optional otherwise
    * @return		the option
    */
   public Option required(boolean value) {
     m_Required = value;
+    if (!value)
+      noDefault();
     return this;
   }
 
@@ -386,6 +424,8 @@ public class Option
    * @see		#getType()
    */
   public boolean isValid(String value) {
+    File	file;
+
     try {
       switch (getType()) {
 	case BOOLEAN:
@@ -411,6 +451,22 @@ public class Option
 	  break;
 	case STRING:
 	  return true;
+	case FILE:
+	  file = new File(value);
+	  return !file.exists() || !file.isDirectory();
+	case DIRECTORY:
+	  file = new File(value);
+	  return !file.exists() || file.isDirectory();
+	case EXISTING_FILE:
+	  file = new File(value);
+	  return !file.isDirectory() && file.exists();
+	case EXISTING_DIR:
+	  file = new File(value);
+	  return file.isDirectory() && file.exists();
+	case NONEXISTING_DIR:
+	case NONEXISTING_FILE:
+	  file = new File(value);
+	  return !file.exists();
 	default:
 	  throw new IllegalStateException("Unhandled type (for option '" + getDest() + "'): " + getType());
       }
@@ -446,6 +502,13 @@ public class Option
 	return Double.parseDouble(value);
       case STRING:
 	return value;
+      case FILE:
+      case DIRECTORY:
+      case EXISTING_FILE:
+      case EXISTING_DIR:
+      case NONEXISTING_FILE:
+      case NONEXISTING_DIR:
+        return new File(value);
       default:
 	throw new IllegalStateException("Unhandled type (for option '" + getDest() + "'): " + getType());
     }
