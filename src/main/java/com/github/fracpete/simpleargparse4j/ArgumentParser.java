@@ -232,7 +232,7 @@ public class ArgumentParser
 	width = result.length() % SCREEN_WIDTH;
 	optwidth = opt.getFlag().length();
 	if (opt.hasSecondFlag())
-	  optwidth += 1 + opt.getSecondFlag().length();
+	  optwidth += 2 + opt.getSecondFlag().length();  // comma+blank=2
 	if (!opt.isRequired())
 	  optwidth += 2;  // surrounding brackets
 	if (opt.hasArgument())
@@ -259,7 +259,7 @@ public class ArgumentParser
       for (Option opt : m_Options) {
 	result.append(opt.getFlag());
 	if (opt.hasSecondFlag())
-	  result.append("/").append(opt.getSecondFlag());
+	  result.append(", ").append(opt.getSecondFlag());
 	if (opt.hasArgument())
 	  result.append(" ").append(opt.getDest().toUpperCase());
 	result.append("\n");
