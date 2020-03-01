@@ -126,6 +126,19 @@ public class ArgumentParser
    * @throws ArgumentParserException        if parsing fails, e.g., if options not supplied
    */
   public Namespace parseArgs(String[] args, boolean remove) throws com.github.fracpete.simpleargparse4j.ArgumentParserException {
+    return parseArgs(args, remove, false);
+  }
+
+  /**
+   * Parses the options and returns the parsed associations.
+   *
+   * @param args	the options to parse
+   * @param remove	true if to remove parsed options from the array
+   * @param noErrors 	if enabled, no exceptions are thrown
+   * @return		the parsed options
+   * @throws ArgumentParserException        if parsing fails, e.g., if options not supplied
+   */
+  public Namespace parseArgs(String[] args, boolean remove, boolean noErrors) throws com.github.fracpete.simpleargparse4j.ArgumentParserException {
     Namespace		result;
     Map<String,Option> 	mapped;
     Set<Option>		required;
@@ -149,7 +162,8 @@ public class ArgumentParser
       // help?
       if (args[i].equals("--help")) {
         m_HelpRequested = true;
-        throw new com.github.fracpete.simpleargparse4j.HelpRequestedException();
+        if (!noErrors)
+	  throw new com.github.fracpete.simpleargparse4j.HelpRequestedException();
       }
 
       // defined option?
@@ -183,8 +197,10 @@ public class ArgumentParser
     }
 
     // required options missing?
-    if (required.size() > 0)
-      throw new com.github.fracpete.simpleargparse4j.RequiredOptionMissingException(required);
+    if (required.size() > 0) {
+      if (!noErrors)
+	throw new com.github.fracpete.simpleargparse4j.RequiredOptionMissingException(required);
+    }
 
     return result;
   }
