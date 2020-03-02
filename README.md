@@ -56,16 +56,25 @@ parser.addOption("-n", "--name")
   .required(true);
 ``` 
 
-Other settings:
+Other settings for `ArgumentParser`:
+
+* `screenWidth(int)` -- the width of the screen, which gets used when printing
+  the help screen.
+* `breakChars(char[])` -- the characters that are used to break long help lines
+  into smaller ones to fit within the defined screen width.
+
+Other settings for `Option`:
 
 * `argument(boolean)` -- specifies whether the option is a flag (`false`) or 
-  requires an argument (`true`)
+  requires an argument (`true`). By setting the `type` of an option to `boolean`,
+  this gets automatically set to `false`. 
 * `multiple(boolean)` -- specifies whether the option can occur multiple times
 * `setDefault(...)` -- sets the default value (if not a required option);
   in conjunction with `multiple(true)`, you have to set a `java.util.List` object
 * `type(Type)` -- sets the type to enforce when parsing the options rather than 
-  when retrieving them from the `Namespace` object, e.g., double
-
+  when retrieving them from the `Namespace` object, e.g., `double` or `boolean`.
+* `metaVar(String)` -- for setting the display string for the argument of an
+  option (uses upper case). By default, the `destination` string is used.
 
 ## Parsing options
 
