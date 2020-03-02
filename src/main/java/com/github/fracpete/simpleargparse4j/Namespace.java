@@ -87,10 +87,13 @@ public class Namespace
 	      break;
 	    case FILE:
 	    case DIRECTORY:
+	    case FILE_OR_DIRECTORY:
 	    case EXISTING_FILE:
 	    case EXISTING_DIR:
+	    case EXISTING_FILE_OR_DIRECTORY:
 	    case NONEXISTING_FILE:
 	    case NONEXISTING_DIR:
+	    case NONEXISTING_FILE_OR_DIRECTORY:
 	      setDefault(option.getDest(), new ArrayList<File>());
 	      break;
 	    default:
@@ -125,10 +128,13 @@ public class Namespace
 	      break;
 	    case FILE:
 	    case DIRECTORY:
+	    case FILE_OR_DIRECTORY:
 	    case EXISTING_FILE:
 	    case EXISTING_DIR:
+	    case EXISTING_FILE_OR_DIRECTORY:
 	    case NONEXISTING_FILE:
 	    case NONEXISTING_DIR:
+	    case NONEXISTING_FILE_OR_DIRECTORY:
 	      setDefault(option.getDest(), new File("."));
 	      break;
 	    default:
