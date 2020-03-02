@@ -44,10 +44,13 @@ public class Option
     DOUBLE,
     FILE,
     DIRECTORY,
+    FILE_OR_DIRECTORY,
     EXISTING_FILE,
     EXISTING_DIR,
+    EXISTING_FILE_OR_DIRECTORY,
     NONEXISTING_FILE,
-    NONEXISTING_DIR
+    NONEXISTING_DIR,
+    NONEXISTING_FILE_OR_DIRECTORY,
   }
 
   /** the destination (key in namespace). */
@@ -79,6 +82,9 @@ public class Option
 
   /** the type. */
   protected Type m_Type;
+
+  /** the meta-variable. */
+  protected String m_MetaVar;
 
   /**
    * Initializes the option.
@@ -326,6 +332,17 @@ public class Option
   }
 
   /**
+   * Sets the meta-variable to use, i.e., the display string for the argument.
+   *
+   * @param value	the meta-variable
+   * @return		the option
+   */
+  public Option metaVar(String value) {
+    m_MetaVar = value;
+    return this;
+  }
+
+  /**
    * Returns the destination key name.
    *
    * @return		the key
@@ -417,6 +434,24 @@ public class Option
   }
 
   /**
+   * Checks whether a meta-variable (ie display string for argument) is available.
+   *
+   * @return		true if available
+   */
+  public boolean hasMetaVar() {
+    return (m_MetaVar != null);
+  }
+
+  /**
+   * Returns the meta-variable (ie display string for argument), if any.
+   *
+   * @return		the meta-variable
+   */
+  public String getMetaVar() {
+    return m_MetaVar;
+  }
+
+  /**
    * Uses the type information to test the value.
    *
    * @param value	the string value to test
@@ -457,14 +492,20 @@ public class Option
 	case DIRECTORY:
 	  file = new File(value);
 	  return !file.exists() || file.isDirectory();
+	case FILE_OR_DIRECTORY:
+	  return true;
 	case EXISTING_FILE:
 	  file = new File(value);
-	  return !file.isDirectory() && file.exists();
+	  return file.exists() && !file.isDirectory();
 	case EXISTING_DIR:
 	  file = new File(value);
-	  return file.isDirectory() && file.exists();
+	  return file.exists() && file.isDirectory();
+	case EXISTING_FILE_OR_DIRECTORY:
+	  file = new File(value);
+	  return file.exists();
 	case NONEXISTING_DIR:
 	case NONEXISTING_FILE:
+	case NONEXISTING_FILE_OR_DIRECTORY:
 	  file = new File(value);
 	  return !file.exists();
 	default:
@@ -504,10 +545,13 @@ public class Option
 	return value;
       case FILE:
       case DIRECTORY:
+      case FILE_OR_DIRECTORY:
       case EXISTING_FILE:
       case EXISTING_DIR:
+      case EXISTING_FILE_OR_DIRECTORY:
       case NONEXISTING_FILE:
       case NONEXISTING_DIR:
+      case NONEXISTING_FILE_OR_DIRECTORY:
         return new File(value);
       default:
 	throw new IllegalStateException("Unhandled type (for option '" + getDest() + "'): " + getType());
@@ -554,7 +598,7 @@ public class Option
   public String toString() {
     return "name=" + m_Dest + ", "
       + "flag=" + m_Flag + ", "
-      + "longFlag=" + (m_SecondFlag == null ? "-no-" : m_SecondFlag) + ", "
+      + "secondFlag=" + (m_SecondFlag == null ? "-no-" : m_SecondFlag) + ", "
       + "hasArg=" + m_HasArgument + ", "
       + "defValue=" + m_DefaultValue + ", "
       + "help=" + m_Help + ", "
