@@ -370,16 +370,26 @@ public class ArgumentParser
     if (usage) {
       result.append("Usage: [--help]");
       for (Option opt : m_Options) {
-	width = result.length() % m_ScreenWidth;
+	width = result.length() - result.lastIndexOf("\n");
+
+	// length of option string
 	optwidth = opt.getFlag().length();
 	if (opt.hasSecondFlag())
 	  optwidth += 2 + opt.getSecondFlag().length();  // comma+blank=2
 	if (!opt.isRequired())
 	  optwidth += 2;  // surrounding brackets
-	if (opt.hasArgument())
-	  optwidth += 1 + opt.getDest().length();
+	if (opt.hasArgument()) {
+	  if (opt.hasMetaVar())
+	    optwidth += 1 + opt.getMetaVar().length();
+	  else
+	    optwidth += 1 + opt.getDest().length();
+	}
+	if (opt.isMultiple())
+	  optwidth += 3;
 	if (width + optwidth + 1 > m_ScreenWidth)
 	  result.append("\n").append("      ");
+
+	// append option string
 	result.append(" ");
 	if (!opt.isRequired())
 	  result.append("[");
