@@ -362,7 +362,11 @@ public class ArgumentParser
     }
 
     if (desc) {
-      result.append(m_Description);
+      lines = m_Description.split("\n");
+      for (String line : lines) {
+	for (String fitted: breakUp(line, m_ScreenWidth))
+	  result.append("\t").append(fitted).append("\n");
+      }
       result.append("\n\n");
     }
 
