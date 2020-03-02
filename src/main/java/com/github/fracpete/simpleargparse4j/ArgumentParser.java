@@ -37,7 +37,13 @@ public class ArgumentParser
   implements Serializable {
 
   /** the screen width. */
-  public final int SCREEN_WIDTH = 80;
+  public final static int SCREEN_WIDTH = 80;
+
+  /** the tab width. */
+  public final static int TAB_WIDTH = 8;
+
+  /** the characters that can be used to break up a line. */
+  public final static char[] BREAK_CHARS = " ,;!?".toCharArray();
 
   /** the description. */
   protected String m_Description;
@@ -48,12 +54,20 @@ public class ArgumentParser
   /** whether help got requested. */
   protected boolean m_HelpRequested;
 
+  /** the screen width to use. */
+  protected int m_ScreenWidth;
+
+  /** the break characters to use for the help screen. */
+  protected char[] m_BreakChars;
+
   /**
    * Initializes the parser.
    */
   public ArgumentParser(String description) {
     m_Description = description;
     m_Options     = new ArrayList<>();
+    m_ScreenWidth = SCREEN_WIDTH;
+    m_BreakChars  = BREAK_CHARS;
   }
 
   /**
@@ -63,6 +77,48 @@ public class ArgumentParser
    */
   public String getDescription() {
     return m_Description;
+  }
+
+  /**
+   * Sets the screenwidth to use.
+   *
+   * @param value	the width
+   * @return		the parser
+   */
+  public ArgumentParser screenWidth(int value) {
+    m_ScreenWidth = value;
+    return this;
+  }
+
+  /**
+   * Returns the currently set screenwidth.
+   *
+   * @return		the width
+   */
+  public int getScreenWidth() {
+    return m_ScreenWidth;
+  }
+
+  /**
+   * Sets the break characters to use for breaking up help screen lines when
+   * longer than the maximum screen width.
+   *
+   * @param value	the characters to use for breaking up long strings
+   * @return		the parser
+   */
+  public ArgumentParser breakChars(char[] value) {
+    m_BreakChars = value;
+    return this;
+  }
+
+  /**
+   * Returns the currently set break characters for breaking up the help
+   * screen text into multiple lines.
+   *
+   * @return		the characters
+   */
+  public char[] getBreakChars() {
+    return m_BreakChars;
   }
 
   /**
@@ -216,6 +272,75 @@ public class ArgumentParser
   }
 
   /**
+   * Searches for the from the starting point to the left.
+   *
+   * @param s 		the string to search
+   * @param c 		the character to look for
+   * @param start 	the starting position
+   * @return 		the position, -1 if not found
+   */
+  protected int leftIndex(String s, char c, int start) {
+    int		result;
+    int		i;
+
+    result = -1;
+
+    for (i = start; i >= 0; i--) {
+      if (s.charAt(i) == c) {
+        result = i;
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Breaks up a string into multiple lines if longer than the specified
+   * maximum length.
+   *
+   * @param line	the line to break up
+   * @param max		the maximum length
+   * @return		the generated lines
+   */
+  protected List<String> breakUp(String line, int max) {
+    List<String>	result;
+    int[]		pos;
+    int			i;
+    int			index;
+
+    result = new ArrayList<>();
+    pos    = new int[m_BreakChars.length];
+
+    do {
+      if (line.length() > max) {
+        for (i = 0; i < m_BreakChars.length; i++)
+          pos[i] = leftIndex(line, m_BreakChars[i], max);
+        index = 0;
+        for (i = 0; i < m_BreakChars.length; i++) {
+          if ((pos[i] > -1) && (pos[i] > index))
+            index = pos[i];
+	}
+	// soft-break?
+	if (index > 0) {
+          result.add(line.substring(0, index + 1).trim());
+          line = line.substring(index + 1).trim();
+	}
+	else {
+          result.add(line.substring(0, max).trim());
+          line = line.substring(max).trim();
+	}
+      }
+      else {
+        result.add(line);
+        line = "";
+      }
+    } while (line.length() > 0);
+
+    return result;
+  }
+
+  /**
    * Generates and returns the help screen.
    *
    * @param requested 	true if actually requested
@@ -245,7 +370,7 @@ public class ArgumentParser
     if (usage) {
       result.append("Usage: [--help]");
       for (Option opt : m_Options) {
-	width = result.length() % SCREEN_WIDTH;
+	width = result.length() % m_ScreenWidth;
 	optwidth = opt.getFlag().length();
 	if (opt.hasSecondFlag())
 	  optwidth += 2 + opt.getSecondFlag().length();  // comma+blank=2
@@ -253,14 +378,18 @@ public class ArgumentParser
 	  optwidth += 2;  // surrounding brackets
 	if (opt.hasArgument())
 	  optwidth += 1 + opt.getDest().length();
-	if (width + optwidth + 1 > SCREEN_WIDTH)
+	if (width + optwidth + 1 > m_ScreenWidth)
 	  result.append("\n").append("      ");
 	result.append(" ");
 	if (!opt.isRequired())
 	  result.append("[");
 	result.append(opt.getFlag());
-	if (opt.hasArgument())
-	  result.append(" ").append(opt.getDest().toUpperCase());
+	if (opt.hasArgument()) {
+	  if (opt.hasMetaVar())
+	    result.append(" ").append(opt.getMetaVar().toUpperCase());
+	  else
+	    result.append(" ").append(opt.getDest().toUpperCase());
+	}
 	if (opt.isMultiple())
 	  result.append("...");
 	if (!opt.isRequired())
@@ -276,12 +405,18 @@ public class ArgumentParser
 	result.append(opt.getFlag());
 	if (opt.hasSecondFlag())
 	  result.append(", ").append(opt.getSecondFlag());
-	if (opt.hasArgument())
-	  result.append(" ").append(opt.getDest().toUpperCase());
+	if (opt.hasArgument()) {
+	  if (opt.hasMetaVar())
+	    result.append(" ").append(opt.getMetaVar().toUpperCase());
+	  else
+	    result.append(" ").append(opt.getDest().toUpperCase());
+	}
 	result.append("\n");
 	lines = opt.getHelp().split("\n");
-	for (String line : lines)
-	  result.append("\t").append(line).append("\n");
+	for (String line : lines) {
+	  for (String fitted: breakUp(line, m_ScreenWidth - TAB_WIDTH))
+	    result.append("\t").append(fitted).append("\n");
+	}
 	result.append("\n");
       }
     }
@@ -310,7 +445,7 @@ public class ArgumentParser
       return;
     }
 
-    System.err.println(e);
+    System.err.println(e.toString());
     e.printStackTrace();
     System.err.println(generateHelpScreen(false));
   }
