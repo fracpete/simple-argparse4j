@@ -191,6 +191,6 @@ Add the following dependency to your `pom.xml`:
     <dependency>
       <groupId>com.github.fracpete</groupId>
       <artifactId>simple-argparse4j</artifactId>
-      <version>0.0.12</version>
+      <version>0.0.13</version>
     </dependency>
 ```
